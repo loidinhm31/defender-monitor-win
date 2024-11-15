@@ -1,0 +1,3 @@
+defender_enabled ICON "icons/refresh-shield.ico"
+defender_disabled ICON "icons/restriction-shield.ico"
+defender_unknown ICON "icons/warning-shield.ico"
