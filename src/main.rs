@@ -6,6 +6,8 @@ use std::time::Duration;
 use tray_item::{IconSource, TrayItem};
 use wmi::{COMLibrary, WMIConnection, Variant};
 use serde::Deserialize;
+use winreg::enums::*;
+use winreg::RegKey;
 
 #[derive(PartialEq, Clone, Debug)]
 enum DefenderStatus {
@@ -73,6 +75,29 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 DefenderStatus::Unknown => "Windows Defender status is UNKNOWN",
             };
             println!("{}", message);
+        }
+    })?;
+
+    // Add autostart menu items
+    tray.add_menu_item("Enable Autostart", || {
+        match set_autostart(true) {
+            Ok(_) => println!("Autostart enabled successfully"),
+            Err(e) => eprintln!("Failed to enable autostart: {}", e),
+        }
+    })?;
+
+    tray.add_menu_item("Disable Autostart", || {
+        match set_autostart(false) {
+            Ok(_) => println!("Autostart disabled successfully"),
+            Err(e) => eprintln!("Failed to disable autostart: {}", e),
+        }
+    })?;
+
+    // Add status check for autostart
+    tray.add_menu_item("Check Autostart Status", || {
+        match is_autostart_enabled() {
+            Ok(enabled) => println!("Autostart is {}", if enabled { "enabled" } else { "disabled" }),
+            Err(e) => eprintln!("Failed to check autostart status: {}", e),
         }
     })?;
 
@@ -217,5 +242,33 @@ try {
         Ok(())
     } else {
         Err("Failed to change protection status".into())
+    }
+}
+
+fn set_autostart(enabled: bool) -> Result<(), Box<dyn std::error::Error>> {
+    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+    let path = r"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
+    let (key, _) = hkcu.create_subkey(path)?;
+
+    let exe_path = std::env::current_exe()?;
+    let exe_path_str = exe_path.to_string_lossy();
+
+    if enabled {
+        key.set_value("DefenderMonitor", &exe_path_str.as_ref())?;
+    } else {
+        key.delete_value("DefenderMonitor")?;
+    }
+
+    Ok(())
+}
+
+fn is_autostart_enabled() -> Result<bool, Box<dyn std::error::Error>> {
+    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+    let path = r"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
+    let key = hkcu.open_subkey(path)?;
+
+    match key.get_value::<String, _>("DefenderMonitor") {
+        Ok(_) => Ok(true),
+        Err(_) => Ok(false),
     }
 }

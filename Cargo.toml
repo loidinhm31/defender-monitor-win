@@ -15,6 +15,7 @@ wmi = "0.13"
 tokio = { version = "1.28", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
 base64 = "0.22.1"
+winreg = "0.50"
 
 [build-dependencies]
 embed-resource = "2.3"
