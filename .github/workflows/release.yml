@@ -36,4 +36,4 @@ jobs:
           prerelease: false
           generate_release_notes: true
           files: |
-            target/release/defender-monitor
+            target/release/defender-monitor.exe
