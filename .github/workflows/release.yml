@@ -7,8 +7,8 @@ on:
 
 jobs:
   build:
-    name: Build and Release
-    runs-on: ubuntu-latest
+    name: Build Windows Release
+    runs-on: windows-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
